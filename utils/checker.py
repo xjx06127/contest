@@ -595,10 +595,18 @@ class Checker:
                 fov_steps.append(int(self.component.iloc[cidx[0]]['step']))
             else:
                 fov_steps.append(0)
-        max_core = int(self.parameter['max_core'].iloc[0])
-        self._optimal_core = max_core
-        sim_ct, _ = self.get_real_cost(params, fov_center, t_imaging, t_recon, t_comps, max_core=max_core, fov_steps=fov_steps)
-        return sim_ct
+        max_core = max(int(self.parameter['max_core'].iloc[0]), 4)
+        beta = 10
+        best_ct, best_k, best_ct_raw = None, max_core, 0.0
+        for k in range(4, max_core + 1):
+            ct_k, _ = self.get_real_cost(params, fov_center, t_imaging, t_recon, t_comps, max_core=k, fov_steps=fov_steps)
+            cost = ct_k + k * beta
+            if best_ct is None or cost < best_ct:
+                best_ct = cost
+                best_k = k
+                best_ct_raw = ct_k
+        self._optimal_core = best_k
+        return best_ct_raw
 
     def save_combined_view(self, sim_ct=None, sim_gantt=None):
         if sim_ct is None or sim_gantt is None:
@@ -631,9 +639,18 @@ class Checker:
 
             params = [self.parameter['v_x'].iloc[0], self.parameter['v_y'].iloc[0],
                       self.parameter['a_x'].iloc[0], self.parameter['a_y'].iloc[0]]
-            max_core = int(self.parameter['max_core'].iloc[0])
-            self._optimal_core = max_core
-            sim_ct, sim_gantt = self.get_real_cost(params, fov_center, t_imaging, t_recon, t_comps, max_core=max_core, fov_steps=fov_steps)
+            max_core = max(int(self.parameter['max_core'].iloc[0]), 4)
+            beta = 10
+            best_cost, best_k = None, max_core
+            sim_ct, sim_gantt = None, None
+            for k in range(4, max_core + 1):
+                ct_k, gantt_k = self.get_real_cost(params, fov_center, t_imaging, t_recon, t_comps, max_core=k, fov_steps=fov_steps)
+                cost = ct_k + k * beta
+                if best_cost is None or cost < best_cost:
+                    best_cost = cost
+                    best_k = k
+                    sim_ct, sim_gantt = ct_k, gantt_k
+            self._optimal_core = best_k
 
         err = self.component['error'] if 'error' in self.component.columns else []
         cover = not any(err)

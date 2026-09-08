@@ -1129,26 +1129,18 @@ document.addEventListener('DOMContentLoaded',function(){try{var saved=localStora
 <div class="section" id="s2" style="background:linear-gradient(135deg,#fafbff 0%,#f0f4ff 100%)">
   <div class="container">
     <div class="section-title"><span class="num" style="background:var(--accent)">2</span> Contest Format and Scoring</div>
-    <div class="section-desc">You only need to implement <code>solver.py</code>. The <code>max_core</code> is given as a fixed input parameter (random 4&ndash;16 per dataset).</div>
+    <div class="section-desc">You only need to implement <code>solver.py</code>. The Core count is automatically optimized by the Checker, and the final score combines CT, runtime, and resource usage.</div>
 
     <div class="card" style="border-left:4px solid var(--accent)">
-      <h3><span class="icon">&#x1F3C6;</span> Scoring</h3>
-      <div class="callout callout-info" style="margin:0">
-        <span class="ci">&#x1F4C5;</span>
-        <span><strong>The scoring method will be announced when the competition begins (Sep. 7, 2026).</strong><br>
-        The 96 datasets in <code>simulation_data/</code> are for development and testing. Final official scoring uses a <strong>separate hidden test set</strong>.</span>
-      </div>
-    </div>
-    <!-- SCORING_DETAIL_START (uncomment on Sep 7, 2026)
-    <div class="card" style="border-left:4px solid var(--accent)">
-      <h3><span class="icon">&#x1F3C6;</span> Scoring &mdash; Cycle Time + Computation Time</h3>
-      <p>Each dataset has a fixed <code>max_core</code> value (randomly assigned between 4 and 16). The Checker computes Cycle Time using this core count directly. Participants cannot change or optimize the <code>max_core</code> value. The solver's computation time is also included in the score.</p>
+      <h3><span class="icon">&#x1F3C6;</span> Scoring &mdash; CT + Computation Time + Resource (Core) Combined</h3>
+      <p>For each evaluation dataset, the Checker <strong>automatically searches for the optimal Core count</strong> in the range 4 &sim; max_core. It evaluates <strong>every integer k from 4 to max_core</strong>, computes CT(data, k) for each, and selects the k that minimizes <code>CT(data, k) + k &times; &beta;</code>. <strong>Participants cannot control or specify the Core count</strong> &mdash; it is determined entirely by the Checker.</p>
       <div class="formula-box" style="margin:16px 0">
-        <span class="label">Score</span> = AVG<sub>i=all</sub> ( Cycle Time<sub>i</sub> + Computation Time<sub>i</sub> )<br><br>
-        <span class="label">Cycle Time</span> = Inspection time computed by Checker (seconds)<br>
-        <span class="label">Computation Time</span> = Solver computation time (seconds)<br>
-        <span class="label">max_core</span> = Fixed input constraint per dataset (random 4&ndash;16)<br>
-        <span class="label">Ranking</span> = Lower Score is <strong>better</strong>
+        <span class="label">Total Score</span> = &Sigma;<sub>data</sub> CT(data, k*) &ensp;+&ensp; &Sigma;<sub>data</sub> RT(data) &times; &alpha; &ensp;+&ensp; &Sigma;<sub>data</sub> k* &times; &beta;<br><br>
+        <span class="label">k*</span> = argmin<sub>k=4..max_core</sub> [ CT(data, k) + k &times; &beta; ]<br><br>
+        <span class="label">&alpha;</span> = 1 &emsp;&emsp; <span class="label">&beta;</span> = 10<br><br>
+        <span class="label">Ranking</span> = Lower Total Score is <strong>better</strong><br>
+        <span class="label">RT</span> = solver.py runtime (Runtime, seconds)<br>
+        <span class="label">Core</span> = Optimal Core count selected by Checker (4 &sim; max_core)
       </div>
       <div class="grid-2">
         <div class="callout callout-warn" style="margin:0">
@@ -1158,28 +1150,32 @@ document.addEventListener('DOMContentLoaded',function(){try{var saved=localStora
         </div>
         <div class="callout callout-info" style="margin:0">
           <span class="ci">&#x1F4A1;</span>
-          <span><strong>Key Insight:</strong> The core count is a given constraint, not a participant choice. Focus on <strong>minimizing FOV count and optimizing visit order</strong> while keeping computation time low.</span>
+          <span><strong>Key Insight:</strong> More Cores reduce CT but increase resource cost; fewer Cores increase CT. Runtime also accumulates. <strong>Algorithms that produce good results quickly with fewer resources</strong> win.</span>
         </div>
       </div>
       <div style="margin-top:16px">
         <table style="width:100%;font-size:.82rem;border-collapse:collapse;text-align:center">
           <thead><tr style="background:var(--primary);color:#fff">
-            <th style="padding:10px">Data</th><th style="padding:10px">Core (given)</th><th style="padding:10px">Cycle Time</th><th style="padding:10px">Computation Time</th><th style="padding:10px">Score</th>
+            <th style="padding:10px">Data</th><th style="padding:10px">Optimal Core (k*)</th><th style="padding:10px">CT</th><th style="padding:10px">RT&times;&alpha;</th><th style="padding:10px">Core&times;&beta;</th>
           </tr></thead>
           <tbody>
-            <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:700">PCB_01</td><td style="padding:8px;border-bottom:1px solid #eee">10</td><td style="padding:8px;border-bottom:1px solid #eee">33.2s</td><td style="padding:8px;border-bottom:1px solid #eee">1.5s</td><td style="padding:8px;border-bottom:1px solid #eee">34.7s</td></tr>
-            <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:700">PCB_02</td><td style="padding:8px;border-bottom:1px solid #eee">8</td><td style="padding:8px;border-bottom:1px solid #eee">41.3s</td><td style="padding:8px;border-bottom:1px solid #eee">2.1s</td><td style="padding:8px;border-bottom:1px solid #eee">43.4s</td></tr>
-            <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:700">PCB_03</td><td style="padding:8px;border-bottom:1px solid #eee">12</td><td style="padding:8px;border-bottom:1px solid #eee">28.5s</td><td style="padding:8px;border-bottom:1px solid #eee">0.8s</td><td style="padding:8px;border-bottom:1px solid #eee">29.3s</td></tr>
-            <tr style="background:#f8f9fa"><td style="padding:10px;font-weight:800" colspan="4">Average Score</td><td style="padding:10px;font-weight:800;font-size:1.05rem;color:var(--primary);background:#e8f0fe">35.80s</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:700">PCB_01</td><td style="padding:8px;border-bottom:1px solid #eee">10</td><td style="padding:8px;border-bottom:1px solid #eee">33.2s</td><td style="padding:8px;border-bottom:1px solid #eee;color:var(--accent)">0.51s</td><td style="padding:8px;border-bottom:1px solid #eee;color:var(--primary)">100</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:700">PCB_02</td><td style="padding:8px;border-bottom:1px solid #eee">8</td><td style="padding:8px;border-bottom:1px solid #eee">41.3s</td><td style="padding:8px;border-bottom:1px solid #eee;color:var(--accent)">0.60s</td><td style="padding:8px;border-bottom:1px solid #eee;color:var(--primary)">80</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:700">PCB_03</td><td style="padding:8px;border-bottom:1px solid #eee">12</td><td style="padding:8px;border-bottom:1px solid #eee">28.5s</td><td style="padding:8px;border-bottom:1px solid #eee;color:var(--accent)">0.55s</td><td style="padding:8px;border-bottom:1px solid #eee;color:var(--primary)">120</td></tr>
+            <tr style="background:#f8f9fa"><td style="padding:10px;font-weight:800" colspan="4">Total Score</td><td style="padding:10px;font-weight:800;font-size:1.05rem;color:var(--primary);background:#e8f0fe">404.66</td></tr>
           </tbody>
         </table>
+        <p style="font-size:.78rem;color:#888;margin-top:8px;text-align:right">* The above table is an <strong>illustrative example</strong> with 3 datasets. Actual scoring uses a separate hidden test set.</p>
       </div>
       <div class="callout callout-warn" style="margin-top:16px">
+        <span class="ci">&#x26A0;</span>
+        <span><strong>Constraint Violation &amp; Penalty:</strong> When constraints are violated, <code>penalty_solver</code> automatically assigns FOVs for <strong>uncovered components</strong>, and CT is recalculated with those additional FOVs included. There is <strong>no extra penalty score</strong> &mdash; the increased CT from the added FOVs is the only cost.</span>
+      </div>
+      <div class="callout callout-warn" style="margin-top:8px">
         <span class="ci">&#x1F4CB;</span>
         <span><strong>Practice vs. Test Data:</strong> The 96 datasets in <code>simulation_data/</code> are for development and testing. Final official scoring uses a <strong>separate hidden test set</strong>. The test data will be released on the <a href="https://github.com/iccas2026-kohyoung/contest" target="_blank">GitHub repository</a> after the contest ends.</span>
       </div>
     </div>
-    SCORING_DETAIL_END -->
   </div>
 </div>
 
@@ -1294,6 +1290,7 @@ document.addEventListener('DOMContentLoaded',function(){try{var saved=localStora
 
             <tr><td><b>2.3</b></td><td>Fiducial FOV Restriction</td>
               <td><strong>Fiducial components (type=2)</strong> must be placed in the <strong>first FOV</strong> exclusively. <strong>No other components allowed</strong> in the Fiducial FOV.<br>
+              The <strong>Fiducial must be centered in the FOV</strong> — the FOV center coincides with the Fiducial component center.<br>
               Fiducials define the origin (starting point) of the PCB coordinate system for precise position calibration.</td></tr>
 
             <tr><td><b>2.4</b></td><td>Barcode FOV Rules</td>
@@ -1301,7 +1298,7 @@ document.addEventListener('DOMContentLoaded',function(){try{var saved=localStora
               Barcodes are PCB model identifiers used to determine which PCB model is being inspected. Must be inspected after Fiducials.<br><br>
               <strong>A Barcode FOV can also contain Normal components (type=0).</strong> The FOV's type is determined by the <strong>highest type among its components</strong>: <code>fov.type = max(component types in FOV)</code>. So a FOV containing both Barcode(1) and Normal(0) components becomes a Barcode FOV (type=1).
               <div class="example-box"><div class="ex-title">Fiducial vs Barcode</div>
-              <strong>Fiducial (type=2):</strong> First FOV, exclusive — no other components allowed<br>
+              <strong>Fiducial (type=2):</strong> First FOV, exclusive, centered — no other components allowed<br>
               <strong>Barcode (type=1):</strong> Multiple per FOV, <strong>can include Normal(0) components too</strong> → Group nearby Barcodes and Normals for efficient placement</div>
               <div class="callout callout-info" style="margin-top:8px;margin-bottom:0">
                 <span class="ci">&#x1F4A1;</span>
@@ -2063,7 +2060,7 @@ document.addEventListener('DOMContentLoaded',function(){try{var saved=localStora
 
         <tr class="grp2"><td>2.1</td><td rowspan="7">Component Placement</td><td>Full Component Coverage</td><td>All components in at least 1 FOV</td></tr>
         <tr class="grp2"><td>2.2</td><td>Fully Contained Within FOV</td><td>All 4 corners inside FOV area</td></tr>
-        <tr class="grp2"><td>2.3</td><td>Fiducial FOV Restriction</td><td>First FOV, exclusive — no other components allowed</td></tr>
+        <tr class="grp2"><td>2.3</td><td>Fiducial FOV Restriction</td><td>First FOV, exclusive, Fiducial centered in FOV — no other components allowed</td></tr>
         <tr class="grp2"><td>2.4</td><td>Barcode FOV Rules</td><td>Multiple Barcodes per FOV OK. Normal components can be included. fov.type = max(comp types). Inspect after Fiducial, before Normal</td></tr>
         <tr class="grp2"><td>2.5</td><td>Large Component Split</td><td>Components exceeding effective FOV (Side FOV for side=1) covered by multiple FOVs</td></tr>
         <tr class="grp2"><td>2.6</td><td>Side Component Placement</td><td>side=1 comps: all 4 corners in Side FOV (1/2)</td></tr>
@@ -3166,26 +3163,18 @@ document.addEventListener('DOMContentLoaded',function(){try{var saved=localStora
 <div class="section" id="ko-s2" style="background:linear-gradient(135deg,#fafbff 0%,#f0f4ff 100%)">
   <div class="container">
     <div class="section-title"><span class="num" style="background:var(--accent)">2</span> 대회 형식 및 채점</div>
-    <div class="section-desc"><code>solver.py</code> 하나만 구현하면 됩니다. <code>max_core</code>는 데이터셋별 고정 입력 파라미터(랜덤 4&ndash;16)이며, <strong>Cycle Time + Computation Time</strong>으로 평가합니다.</div>
+    <div class="section-desc"><code>solver.py</code> 하나만 구현하면 됩니다. Core 수는 Checker가 자동 최적화하며, CT&middot;실행 시간&middot;자원 사용을 종합 평가합니다.</div>
 
     <div class="card" style="border-left:4px solid var(--accent)">
-      <h3><span class="icon">&#x1F3C6;</span> 채점</h3>
-      <div class="callout callout-info" style="margin:0">
-        <span class="ci">&#x1F4C5;</span>
-        <span><strong>채점 방식은 경진대회 시작 시(2026. 9. 7) 공개됩니다.</strong><br>
-        <code>simulation_data/</code>의 96개 데이터셋은 개발 및 테스트용입니다. 최종 공식 채점은 <strong>별도의 비공개 테스트셋</strong>으로 진행됩니다.</span>
-      </div>
-    </div>
-    <!-- SCORING_DETAIL_START_KO (uncomment on Sep 7, 2026)
-    <div class="card" style="border-left:4px solid var(--accent)">
-      <h3><span class="icon">&#x1F3C6;</span> 채점 방식 &mdash; Cycle Time + Computation Time</h3>
-      <p>각 데이터셋에 <code>max_core</code> 값이 고정 입력(4~16 랜덤)으로 주어집니다. Checker는 이 값을 그대로 사용하여 Cycle Time을 계산합니다. 참가자가 <code>max_core</code> 값을 변경하거나 최적화할 수 없습니다. Solver의 계산 시간(Computation Time)도 점수에 포함됩니다.</p>
+      <h3><span class="icon">&#x1F3C6;</span> 채점 방식 &mdash; CT + 계산시간 + 자원(Core) 통합 평가</h3>
+      <p>각 평가 데이터에 대해 Checker가 <strong>4 ~ max_core 범위에서 최적의 Core 수를 자동 탐색</strong>합니다. <strong>4부터 max_core까지 모든 정수 k</strong>에 대해 CT(data, k)를 계산하고, <code>CT(data, k) + k &times; &beta;</code>가 최소인 k를 선택합니다. <strong>참가자는 Core 수를 지정하거나 제어할 수 없습니다</strong> &mdash; Checker가 전적으로 결정합니다.</p>
       <div class="formula-box" style="margin:16px 0">
-        <span class="label">Score</span> = AVG<sub>i=all</sub> ( Cycle Time<sub>i</sub> + Computation Time<sub>i</sub> )<br><br>
-        <span class="label">Cycle Time</span> = Checker가 계산하는 검사 시간 (초)<br>
-        <span class="label">Computation Time</span> = Solver 계산 시간 (초)<br>
-        <span class="label">max_core</span> = 데이터셋별 고정 입력 (랜덤 4&ndash;16)<br>
-        <span class="label">순위</span> = Score가 <strong>낮을수록</strong> 우수
+        <span class="label">Total Score</span> = &Sigma;<sub>data</sub> CT(data, k*) &ensp;+&ensp; &Sigma;<sub>data</sub> RT(data) &times; &alpha; &ensp;+&ensp; &Sigma;<sub>data</sub> k* &times; &beta;<br><br>
+        <span class="label">k*</span> = argmin<sub>k=4..max_core</sub> [ CT(data, k) + k &times; &beta; ]<br><br>
+        <span class="label">&alpha;</span> = 1 &emsp;&emsp; <span class="label">&beta;</span> = 10<br><br>
+        <span class="label">순위</span> = Total Score가 <strong>낮을수록</strong> 우수<br>
+        <span class="label">RT</span> = solver.py 실행 시간 (Runtime, 초)<br>
+        <span class="label">Core</span> = Checker가 자동 선택한 최적 Core 수 (4 ~ max_core)
       </div>
       <div class="grid-2">
         <div class="callout callout-warn" style="margin:0">
@@ -3195,28 +3184,32 @@ document.addEventListener('DOMContentLoaded',function(){try{var saved=localStora
         </div>
         <div class="callout callout-info" style="margin:0">
           <span class="ci">&#x1F4A1;</span>
-          <span><strong>핵심:</strong> Core 수는 고정된 입력 조건이므로, <strong>FOV 수를 줄이고 방문 순서를 최적화</strong>하되 계산 시간도 함께 고려해야 합니다.</span>
+          <span><strong>핵심:</strong> Core를 많이 쓰면 CT는 줄지만 자원 비용이 증가하고, 적게 쓰면 CT가 길어집니다. 실행 시간도 누적됩니다. <strong>적은 자원으로 좋은 결과를 빠르게</strong> 내는 알고리즘이 승리합니다.</span>
         </div>
       </div>
       <div style="margin-top:16px">
         <table style="width:100%;font-size:.82rem;border-collapse:collapse;text-align:center">
           <thead><tr style="background:var(--primary);color:#fff">
-            <th style="padding:10px">데이터</th><th style="padding:10px">Core (입력)</th><th style="padding:10px">Cycle Time</th><th style="padding:10px">Computation Time</th><th style="padding:10px">Score</th>
+            <th style="padding:10px">데이터</th><th style="padding:10px">최적 Core (k*)</th><th style="padding:10px">CT</th><th style="padding:10px">RT&times;&alpha;</th><th style="padding:10px">Core&times;&beta;</th>
           </tr></thead>
           <tbody>
-            <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:700">PCB_01</td><td style="padding:8px;border-bottom:1px solid #eee">10</td><td style="padding:8px;border-bottom:1px solid #eee">33.2s</td><td style="padding:8px;border-bottom:1px solid #eee">1.5s</td><td style="padding:8px;border-bottom:1px solid #eee">34.7s</td></tr>
-            <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:700">PCB_02</td><td style="padding:8px;border-bottom:1px solid #eee">8</td><td style="padding:8px;border-bottom:1px solid #eee">41.3s</td><td style="padding:8px;border-bottom:1px solid #eee">2.1s</td><td style="padding:8px;border-bottom:1px solid #eee">43.4s</td></tr>
-            <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:700">PCB_03</td><td style="padding:8px;border-bottom:1px solid #eee">12</td><td style="padding:8px;border-bottom:1px solid #eee">28.5s</td><td style="padding:8px;border-bottom:1px solid #eee">0.8s</td><td style="padding:8px;border-bottom:1px solid #eee">29.3s</td></tr>
-            <tr style="background:#f8f9fa"><td style="padding:10px;font-weight:800" colspan="4">평균 Score</td><td style="padding:10px;font-weight:800;font-size:1.05rem;color:var(--primary);background:#e8f0fe">35.80s</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:700">PCB_01</td><td style="padding:8px;border-bottom:1px solid #eee">10</td><td style="padding:8px;border-bottom:1px solid #eee">33.2s</td><td style="padding:8px;border-bottom:1px solid #eee;color:var(--accent)">0.51s</td><td style="padding:8px;border-bottom:1px solid #eee;color:var(--primary)">100</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:700">PCB_02</td><td style="padding:8px;border-bottom:1px solid #eee">8</td><td style="padding:8px;border-bottom:1px solid #eee">41.3s</td><td style="padding:8px;border-bottom:1px solid #eee;color:var(--accent)">0.60s</td><td style="padding:8px;border-bottom:1px solid #eee;color:var(--primary)">80</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid #eee;font-weight:700">PCB_03</td><td style="padding:8px;border-bottom:1px solid #eee">12</td><td style="padding:8px;border-bottom:1px solid #eee">28.5s</td><td style="padding:8px;border-bottom:1px solid #eee;color:var(--accent)">0.55s</td><td style="padding:8px;border-bottom:1px solid #eee;color:var(--primary)">120</td></tr>
+            <tr style="background:#f8f9fa"><td style="padding:10px;font-weight:800" colspan="4">Total Score</td><td style="padding:10px;font-weight:800;font-size:1.05rem;color:var(--primary);background:#e8f0fe">404.66</td></tr>
           </tbody>
         </table>
+        <p style="font-size:.78rem;color:#888;margin-top:8px;text-align:right">* 위 표는 3개 데이터셋을 사용한 <strong>예시</strong>입니다. 실제 채점은 별도의 비공개 테스트셋으로 진행됩니다.</p>
       </div>
       <div class="callout callout-warn" style="margin-top:16px">
+        <span class="ci">&#x26A0;</span>
+        <span><strong>제약 위반 시 처리:</strong> 제약 조건을 위반하면 <code>penalty_solver</code>가 <strong>미포함된 부품</strong>에 대해 자동으로 FOV를 배정하고, 추가된 FOV를 포함하여 CT를 재계산합니다. <strong>별도의 추가 벌점은 없으며</strong>, FOV 추가로 인한 CT 증가 자체가 페널티입니다.</span>
+      </div>
+      <div class="callout callout-warn" style="margin-top:8px">
         <span class="ci">&#x1F4CB;</span>
         <span><strong>연습용 vs. 평가용 데이터:</strong> <code>simulation_data/</code>의 96개 데이터셋은 개발 및 테스트용입니다. 최종 공식 채점은 <strong>별도의 비공개 테스트셋</strong>으로 진행됩니다. 테스트 데이터는 대회 종료 후 <a href="https://github.com/iccas2026-kohyoung/contest" target="_blank">GitHub 저장소</a>에 공개됩니다.</span>
       </div>
     </div>
-    SCORING_DETAIL_END_KO -->
   </div>
 </div>
 
@@ -3331,6 +3324,7 @@ document.addEventListener('DOMContentLoaded',function(){try{var saved=localStora
 
             <tr><td><b>2.3</b></td><td>Fiducial FOV 제한</td>
               <td><strong>Fiducial 부품(type=2)</strong>은 반드시 <strong>첫 번째 FOV</strong>에 단독 배치됩니다. Fiducial FOV에는 <strong>다른 부품 포함 불가</strong>.<br>
+              <strong>Fiducial은 FOV의 중심에 위치</strong>해야 합니다 — FOV 중심이 Fiducial 부품 중심과 일치해야 합니다.<br>
               Fiducial은 PCB 좌표계의 시작점(원점)으로, 정밀한 위치 보정에 사용됩니다.</td></tr>
 
             <tr><td><b>2.4</b></td><td>Barcode FOV 규칙</td>
@@ -3338,7 +3332,7 @@ document.addEventListener('DOMContentLoaded',function(){try{var saved=localStora
               Barcode는 PCB 모델 구분자로, 어떤 PCB 모델인지 식별하기 위해 Fiducial 다음으로 먼저 검사합니다.<br><br>
               <strong>Barcode FOV에는 일반 부품(type=0)도 함께 포함될 수 있습니다.</strong> FOV의 타입은 <strong>포함된 부품 중 가장 높은 type</strong>으로 결정됩니다: <code>fov.type = max(FOV 내 부품 type)</code>. 따라서 Barcode(1)와 일반(0) 부품이 같은 FOV에 있으면 해당 FOV는 Barcode FOV(type=1)가 됩니다.
               <div class="example-box"><div class="ex-title">Fiducial vs Barcode</div>
-              <strong>Fiducial(type=2):</strong> 첫 번째 FOV에 단독 배치, 다른 부품 불가<br>
+              <strong>Fiducial(type=2):</strong> 첫 번째 FOV에 단독 배치, 중심 정렬, 다른 부품 불가<br>
               <strong>Barcode(type=1):</strong> 동일 FOV에 여러 개 가능, <strong>일반 부품(type=0)도 함께 포함 가능</strong> → 가까운 Barcode와 일반 부품을 묶어서 효율적 배치</div>
               <div class="callout callout-info" style="margin-top:8px;margin-bottom:0">
                 <span class="ci">&#x1F4A1;</span>
@@ -4100,7 +4094,7 @@ document.addEventListener('DOMContentLoaded',function(){try{var saved=localStora
 
         <tr class="grp2"><td>2.1</td><td rowspan="7">부품 배치</td><td>전체 부품 커버</td><td>모든 부품 FOV에 1회 이상 포함</td></tr>
         <tr class="grp2"><td>2.2</td><td>FOV 영역 내 완전 포함</td><td>부품 4꼭짓점이 FOV 영역 내</td></tr>
-        <tr class="grp2"><td>2.3</td><td>Fiducial FOV 제한</td><td>첫 번째 FOV에 단독 배치, 다른 부품 불가</td></tr>
+        <tr class="grp2"><td>2.3</td><td>Fiducial FOV 제한</td><td>첫 번째 FOV에 단독 배치, Fiducial 중심 정렬, 다른 부품 불가</td></tr>
         <tr class="grp2"><td>2.4</td><td>Barcode FOV 규칙</td><td>동일 FOV에 Barcode 여러 개 + 일반 부품 포함 가능. fov.type = max(부품 type). Fiducial 다음, 일반 전에 검사</td></tr>
         <tr class="grp2"><td>2.5</td><td>큰 부품 분할</td><td>유효 FOV(side=1은 Side FOV) 초과 부품은 다중 FOV로 완전 커버</td></tr>
         <tr class="grp2"><td>2.6</td><td>Side 부품 배치</td><td>side=1 부품은 Side FOV(1/2) 내 4꼭짓점 포함</td></tr>
